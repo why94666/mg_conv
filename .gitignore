@@ -1,5 +1,9 @@
-﻿*.bak
+*.bak
 *.tmp
 *.log
 Thumbs.db
 desktop.ini
+web/node_modules/
+web/dist/
+web/.vite/
+web/coverage/
