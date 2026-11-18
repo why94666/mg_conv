@@ -549,6 +549,31 @@ footer {
     padding: 16px 13px 28px;
   }
 
+  .hero {
+    order: 1;
+  }
+
+  .dropzone {
+    order: 2;
+  }
+
+  .options-panel {
+    order: 3;
+  }
+
+  .action-bar {
+    order: 4;
+    position: static;
+  }
+
+  .files-panel {
+    order: 5;
+  }
+
+  .tips {
+    order: 6;
+  }
+
   .topbar {
     padding-bottom: 12px;
   }
@@ -616,8 +641,7 @@ footer {
   }
 
   .action-bar {
-    position: sticky;
-    bottom: 8px;
+    position: static;
     flex-direction: column;
     align-items: stretch;
     gap: 9px;

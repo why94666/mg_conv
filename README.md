@@ -69,6 +69,8 @@ npm run build
 
 部署到 EdgeOne Pages：项目根目录填 `web`，构建命令 `npm ci && npm run build`，输出目录 `dist`。详细说明见 [`web/README.md`](web/README.md)。
 
+推送到 `main` 后，GitHub Actions 也会自动构建并部署到 GitHub Pages；首次使用需要在仓库 Settings → Pages 把 Source 设为 **GitHub Actions**。部署地址：`https://why94666.github.io/mg_conv/`。
+
 ## 文件校验
 
 | 文件 | 大小 | SHA-256 |

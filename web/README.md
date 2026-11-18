@@ -2,6 +2,10 @@
 
 纯前端版本：在浏览器里完成 NCM 解密、标签清理、FLAC/其他音频转 MP3，文件不会上传服务器。
 
+![桌面布局](docs/desktop.png)
+
+![手机布局](docs/mobile.png)
+
 ## 已实现
 
 - NCM 解析：AES-128-ECB + NCM 自有 RC4 变体解密，读取元数据与封面
@@ -41,6 +45,22 @@ npm run build
 - 输出目录：`dist`
 
 也可以在本地执行 `npm run build` 后，用「直接上传」把 `web/dist` 上传。
+
+## 部署到 GitHub Pages
+
+仓库已包含 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml)，推送到 `main` 会自动构建并部署。
+
+第一次使用需要在仓库设置里开启一次：
+
+1. 打开 `https://github.com/why94666/mg_conv/settings/pages`
+2. Build and deployment → Source 选择 **GitHub Actions**
+3. 推送 `main`（或手动运行 `Deploy Web to GitHub Pages` workflow）
+
+部署地址：
+
+```text
+https://why94666.github.io/mg_conv/
+```
 
 ## 测试
 
