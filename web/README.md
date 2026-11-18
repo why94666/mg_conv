@@ -36,6 +36,21 @@ npm run build
 
 产物在 `web/dist/`，纯静态文件，可直接上传到任意静态托管。
 
+## 单文件版
+
+如果不想部署，直接生成一个可双击打开的单文件网页：
+
+```bash
+cd web
+npm run build:single
+```
+
+产物是 `dist-single/index.html`，JS/CSS/Worker/WASM 全部内联，不依赖服务器。仓库里也放了一份可直接打开的：
+
+[`standalone/小鸡转换器_Web.html`](standalone/小鸡转换器_Web.html)
+
+> 单文件版通过 `file://` 直接打开即可使用；Chrome/Edge 支持最好。
+
 ## 部署到 EdgeOne Pages
 
 在 EdgeOne Pages 控制台创建项目，导入 GitHub 仓库 `why94666/mg_conv`：

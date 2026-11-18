@@ -5,6 +5,7 @@ import { startsWith } from './core/bytes';
 import { decodeWithAudioContext } from './core/webAudio';
 import type { CleanMode } from './core/mp3';
 import { formatBytes } from './core/bytes';
+import ConverterWorker from './worker?worker&inline';
 import './styles.css';
 
 type JobStatus = 'queued' | 'processing' | 'done' | 'error';
@@ -108,7 +109,7 @@ export default function App() {
   }, [jobs]);
 
   useEffect(() => {
-    const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+    const worker = new ConverterWorker();
     workerRef.current = worker;
     worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       const message = event.data;

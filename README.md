@@ -71,6 +71,8 @@ npm run build
 
 推送到 `main` 后，GitHub Actions 也会自动构建并部署到 GitHub Pages；首次使用需要在仓库 Settings → Pages 把 Source 设为 **GitHub Actions**。部署地址：`https://why94666.github.io/mg_conv/`。
 
+不想部署也可以直接打开单文件版：[`web/standalone/小鸡转换器_Web.html`](web/standalone/小鸡转换器_Web.html)（JS/CSS/Worker/WASM 全部内联，双击即可使用）。
+
 ## 文件校验
 
 | 文件 | 大小 | SHA-256 |

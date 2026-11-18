@@ -7,6 +7,7 @@
 - 纯前端 Web 版（`web/`）：浏览器内 NCM 解密、标签清理、FLAC/MP3/M4A/AAC/OGG/WAV 转 MP3。
 - NCM 内 MP3/FLAC 在 Worker 内处理；NCM 内 M4A/AAC/OGG/WAV 解密后交给浏览器原生解码再转 MP3。
 - 响应式界面、批量处理、逐个一键下载。
+- 新增 `npm run build:single` 单文件网页，JS/CSS/Worker/WASM 全部内联，可直接双击打开。
 - 全部处理在本地 Web Worker 中完成，文件不上传服务器。
 
 ## 2026-11-12
