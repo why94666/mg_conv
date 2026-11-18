@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import JSZip from 'jszip';
-import type { NcmMeta } from './core/ncm';
+import type { NcmCover, NcmMeta } from './core/ncm';
 import { sniffAudioFormat } from './core/ncm';
 import { startsWith } from './core/bytes';
 import { decodeWithAudioContext } from './core/webAudio';
@@ -53,7 +53,18 @@ interface WorkerError {
   message: string;
 }
 
-type WorkerMessage = WorkerProgress | WorkerDone | WorkerError;
+interface WorkerNeedsDecode {
+  id: number;
+  type: 'needs-decode';
+  buffer: ArrayBuffer;
+  filename: string;
+  sourceFormat: string;
+  meta: NcmMeta | null;
+  cover: NcmCover | null;
+  options: { cleanMode: CleanMode; keepCover: boolean; bitrate: number };
+}
+
+type WorkerMessage = WorkerProgress | WorkerDone | WorkerError | WorkerNeedsDecode;
 
 interface Pending {
   resolve: (result: JobResult) => void;
@@ -124,6 +135,32 @@ export default function App() {
 
       if (message.type === 'progress') {
         pending.onProgress(message.fraction, message.stage);
+        return;
+      }
+
+      if (message.type === 'needs-decode') {
+        pending.onProgress(0.05, '浏览器解码');
+        decodeWithAudioContext(new Uint8Array(message.buffer))
+          .then((pcm) => {
+            worker.postMessage(
+              {
+                id: message.id,
+                type: 'pcm',
+                channels: pcm.channels,
+                sampleRate: pcm.sampleRate,
+                filename: message.filename,
+                sourceFormat: message.sourceFormat,
+                meta: message.meta,
+                cover: message.cover,
+                options: message.options,
+              },
+              pcm.channels.map((channel) => channel.buffer),
+            );
+          })
+          .catch((error) => {
+            pendingRef.current.delete(message.id);
+            pending.reject(error instanceof Error ? error : new Error(String(error)));
+          });
         return;
       }
 

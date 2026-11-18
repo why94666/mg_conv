@@ -84,6 +84,6 @@ npm test
 
 ## 限制
 
-- NCM 内部是 MP3 或 FLAC 时支持最好；NCM 内是 M4A 等容器时暂未接入解密后的浏览器解码流程。
+- NCM 内部是 MP3、FLAC、M4A/AAC、OGG、WAV 时都可以处理；MP3/FLAC 在 Worker 内转码，其他容器交给浏览器原生解码。
 - M4A/AAC/OGG/WAV 的原生解码依赖浏览器；Chrome/Edge/Safari 对 AAC/M4A 支持较好。
 - 大文件（尤其长 FLAC）会占用较多内存，建议在桌面浏览器处理超大文件。

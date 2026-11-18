@@ -1,5 +1,5 @@
 import { startsWith } from './bytes';
-import { decodeNcm, sniffAudioFormat, type AudioFormat, type NcmMeta } from './ncm';
+import { decodeNcm, sniffAudioFormat, type AudioFormat, type NcmCover, type NcmMeta } from './ncm';
 import { writeMp3Tags, type CleanMode } from './mp3';
 import { transcodeFlacToMp3 } from './audio';
 
@@ -17,6 +17,14 @@ export interface ProcessedAudio {
   outputFormat: 'mp3';
   warnings: string[];
   meta: NcmMeta | null;
+}
+
+export interface DecodedInput {
+  audio: Uint8Array;
+  format: AudioFormat;
+  meta: NcmMeta | null;
+  cover: NcmCover | null;
+  warnings: string[];
 }
 
 export interface ProcessProgress {
@@ -39,63 +47,55 @@ export function safeFilename(title: string, fallback = 'audio'): string {
   return cleaned || fallback;
 }
 
-function tagsFor(meta: NcmMeta | null, fallbackTitle: string, options: ProcessOptions) {
-  return {
-    title: meta?.title?.trim() || fallbackTitle,
-    artist: meta?.artist || '',
-    album: meta?.album || '',
-    cover: meta ? null : null,
-    keepCover: options.keepCover,
-    mode: options.cleanMode,
-  };
+export function decodeInput(input: Uint8Array, filename: string): DecodedInput {
+  const isNcm = startsWith(input, NCM_MAGIC) || filename.toLowerCase().endsWith('.ncm');
+  if (isNcm) {
+    const decoded = decodeNcm(input);
+    return {
+      audio: decoded.audio,
+      format: decoded.format,
+      meta: decoded.meta,
+      cover: decoded.cover,
+      warnings: decoded.warnings,
+    };
+  }
+
+  const format = sniffAudioFormat(input.subarray(0, 16));
+  if (format === 'unknown') {
+    throw new Error('无法识别音频格式，请确认文件没有损坏');
+  }
+  return { audio: input, format, meta: null, cover: null, warnings: [] };
 }
 
-export async function processAudio(
-  input: Uint8Array,
+export async function finalizeDecoded(
+  decoded: DecodedInput,
   filename: string,
   options: ProcessOptions,
   onProgress?: ProcessProgress,
 ): Promise<ProcessedAudio> {
-  const stem = stripExtension(filename);
-  const isNcm = startsWith(input, NCM_MAGIC) || filename.toLowerCase().endsWith('.ncm');
-
-  let audio: Uint8Array = input;
-  let sourceFormat: AudioFormat | 'ncm' = 'ncm';
-  let meta: NcmMeta | null = null;
-  let cover: { data: Uint8Array } | null = null;
-  const warnings: string[] = [];
-
-  if (isNcm) {
-    onProgress?.(0.02, '解析 NCM');
-    const decoded = decodeNcm(input);
-    audio = decoded.audio;
-    meta = decoded.meta;
-    cover = decoded.cover ? { data: decoded.cover.data } : null;
-    warnings.push(...decoded.warnings);
-    sourceFormat = decoded.format;
-  } else {
-    sourceFormat = sniffAudioFormat(input.subarray(0, 16));
-    onProgress?.(0.05, '读取音频');
-  }
-
-  if (sourceFormat === 'unknown') {
+  const { audio, format, meta, cover, warnings } = decoded;
+  if (format === 'unknown') {
     throw new Error('无法识别音频格式，请确认文件没有损坏');
   }
 
+  const stem = stripExtension(filename);
   const title = meta?.title?.trim() || stem;
   const outputBase = safeFilename(title, stem || 'audio');
   const tagOptions = {
-    ...tagsFor(meta, title, options),
+    title,
+    artist: meta?.artist || '',
+    album: meta?.album || '',
     cover,
     keepCover: options.keepCover && Boolean(cover),
+    mode: options.cleanMode,
   };
 
   let mp3: Uint8Array;
-  if (sourceFormat === 'mp3') {
+  if (format === 'mp3') {
     onProgress?.(0.35, '清理 MP3 标签');
     mp3 = writeMp3Tags(audio, tagOptions);
     onProgress?.(1, '完成');
-  } else if (sourceFormat === 'flac') {
+  } else if (format === 'flac') {
     onProgress?.(0.08, '解码 FLAC');
     const rawMp3 = await transcodeFlacToMp3(audio, options.bitrate, (fraction) => {
       onProgress?.(0.08 + fraction * 0.8, '转码 MP3');
@@ -105,7 +105,7 @@ export async function processAudio(
     onProgress?.(1, '完成');
   } else {
     throw new Error(
-      `暂不支持 ${sourceFormat.toUpperCase()} 格式转 MP3。当前支持 NCM、MP3、FLAC；M4A/AAC 会在后续版本支持。`,
+      `暂不支持 ${format.toUpperCase()} 格式在 Worker 内转码；请走浏览器解码流程。`,
     );
   }
 
@@ -113,9 +113,19 @@ export async function processAudio(
     bytes: mp3,
     name: `${outputBase}.mp3`,
     title: outputBase,
-    sourceFormat,
+    sourceFormat: format,
     outputFormat: 'mp3',
     warnings,
     meta,
   };
+}
+
+export async function processAudio(
+  input: Uint8Array,
+  filename: string,
+  options: ProcessOptions,
+  onProgress?: ProcessProgress,
+): Promise<ProcessedAudio> {
+  const decoded = decodeInput(input, filename);
+  return finalizeDecoded(decoded, filename, options, onProgress);
 }
