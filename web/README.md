@@ -1,4 +1,4 @@
-# 小鸡转换器 Web
+﻿# 小鸡转换器 Web
 
 纯前端版本：在浏览器里完成 NCM 解密、标签清理、FLAC/其他音频转 MP3，文件不会上传服务器。
 
@@ -102,3 +102,6 @@ npm test
 - NCM 内部是 MP3、FLAC、M4A/AAC、OGG、WAV 时都可以处理；MP3/FLAC 在 Worker 内转码，其他容器交给浏览器原生解码。
 - M4A/AAC/OGG/WAV 的原生解码依赖浏览器；Chrome/Edge/Safari 对 AAC/M4A 支持较好。
 - 大文件（尤其长 FLAC）会占用较多内存，建议在桌面浏览器处理超大文件。
+
+<!-- Pages deployment check trigger -->
+
