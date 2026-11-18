@@ -13,7 +13,7 @@
 - FLAC：WASM 解码 → lamejs 编码 MP3（可选 128/192/256/320k）
 - M4A/AAC/OGG/WAV：通过浏览器原生 `AudioContext` 解码后转 MP3（取决于浏览器支持）
 - 清理强度：仅人物信息 / 人物 + 专辑 / 全部清空
-- 保留封面、批量处理、单个下载、ZIP 打包下载
+- 保留封面、批量处理、逐个一键下载
 - 响应式布局，适配桌面和手机
 - 所有处理在 Web Worker 内完成，不阻塞界面
 
@@ -80,7 +80,7 @@ npm test
 
 - Vite + React + TypeScript
 - Web Worker + `@wasm-audio-decoders/flac` + `@breezystack/lamejs`
-- `aes-js`、`browser-id3-writer`、`jszip`
+- `aes-js`、`browser-id3-writer`
 
 ## 限制
 

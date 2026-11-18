@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import JSZip from 'jszip';
 import type { NcmCover, NcmMeta } from './core/ncm';
 import { sniffAudioFormat } from './core/ncm';
 import { startsWith } from './core/bytes';
@@ -88,23 +87,6 @@ function downloadBlob(blob: Blob, filename: string): void {
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
-
-function uniqueName(name: string, used: Set<string>): string {
-  if (!used.has(name)) {
-    used.add(name);
-    return name;
-  }
-  const base = name.replace(/\.mp3$/i, '');
-  for (let i = 2; i < 1000; i++) {
-    const candidate = `${base} (${i}).mp3`;
-    if (!used.has(candidate)) {
-      used.add(candidate);
-      return candidate;
-    }
-  }
-  used.add(name);
-  return name;
 }
 
 export default function App() {
@@ -301,30 +283,13 @@ export default function App() {
     }
 
     setBusy(false);
-    setNotice('处理完成，可以逐个下载或打包下载。');
+    setNotice('处理完成，点击每个文件的「下载 MP3」即可保存。');
   }
 
   function downloadOne(job: Job) {
     if (!job.result) return;
     const blob = new Blob([job.result.bytes.buffer as ArrayBuffer], { type: 'audio/mpeg' });
     downloadBlob(blob, job.result.name);
-  }
-
-  async function downloadAll() {
-    const finished = jobsRef.current.filter((job) => job.status === 'done' && job.result);
-    if (!finished.length) {
-      setNotice('还没有可下载的结果。');
-      return;
-    }
-    const zip = new JSZip();
-    const used = new Set<string>();
-    for (const job of finished) {
-      const result = job.result;
-      if (!result) continue;
-      zip.file(uniqueName(result.name, used), result.bytes);
-    }
-    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
-    downloadBlob(blob, '小鸡转换器_输出.zip');
   }
 
   function removeJob(id: number) {
@@ -483,7 +448,7 @@ export default function App() {
                   <div className="file-actions">
                     {job.status === 'done' ? (
                       <button type="button" className="mini" onClick={() => downloadOne(job)}>
-                        下载
+                        下载 MP3
                       </button>
                     ) : null}
                     <button
@@ -505,9 +470,6 @@ export default function App() {
         <div className="action-bar">
           <div className="notice">{notice}</div>
           <div className="buttons">
-            <button type="button" className="secondary" onClick={downloadAll} disabled={!doneCount}>
-              打包下载 ZIP
-            </button>
             <button type="button" className="primary" onClick={processAll} disabled={busy || !jobs.length}>
               {busy ? '处理中…' : '开始处理'}
             </button>
@@ -518,6 +480,7 @@ export default function App() {
           <h3>说明</h3>
           <ul>
             <li>NCM 解密和标签清理都在浏览器内完成，不会上传文件。</li>
+            <li>处理完成后，点击文件右侧的「下载 MP3」即可保存，不需要打包。</li>
             <li>NCM 内的 MP3 直接清理标签；FLAC 会先解码再编码成 MP3。</li>
             <li>M4A/AAC/OGG/WAV 会交给浏览器原生解码器转成 MP3，实际支持情况取决于浏览器。</li>
             <li>第一次处理 FLAC 时需要加载 WASM 解码器，之后会走缓存。</li>
